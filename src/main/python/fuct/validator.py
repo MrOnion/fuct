@@ -7,7 +7,7 @@
 __author__ = 'ari'
 
 import logging
-from srecord import SRecord, STYPES
+from .srecord import SRecord, STYPES
 
 LOG = logging.getLogger('fuctlog')
 
@@ -32,7 +32,7 @@ def verify_firmware(filepath):
     for ln, line in enumerate(content.splitlines()):
         try:
             records.append(parse_line(line))
-        except TypeError, ex:
+        except TypeError as ex:
             LOG.error("Line %d: %s" % (ln + 1, ex.message))
             return None
 

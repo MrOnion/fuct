@@ -177,7 +177,7 @@ def execute():
     args = parser.parse_args()
 
     if args.version:
-        print "fuctloader %s (Git: %s)" % (__version__, __git__)
+        print("fuctloader %s (Git: %s)" % (__version__, __git__))
     elif args.command is not None:
         LOG.info("FUCT - fuctloader %s (Git: %s)" % (__version__, __git__))
         try:
@@ -192,13 +192,7 @@ def execute():
                 LOG.info("Exiting...")
             else:
                 LOG.error("Exiting on error")
-        except NotImplementedError, ex:
-            LOG.error(ex.message)
-        except (AttributeError, ValueError), ex:
-            LOG.error(ex.message)
-        except SerialException, ex:
-            LOG.error("Serial: " + ex.message)
-        except OSError, ex:
-            LOG.error("OS: " + ex.message)
+        except (NotImplementedError, AttributeError, ValueError, SerialException, OSError) as ex:
+            LOG.error(ex.args)
     else:
         parser.print_usage()
