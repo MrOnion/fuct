@@ -6,9 +6,13 @@
 
 __author__ = 'ari'
 
+import sys
 import threading
-import Queue
-import log
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+from . import log
 
 LOG = log.fuct_logger('fuctlog')
 
@@ -36,9 +40,11 @@ class RxThread(threading.Thread):
 
             # Incoming
             buf = self.ser.read(self.buffer_size)
+            if sys.version_info[0] < 3:
+                buf = bytearray(buf)
 
             for c in buf:
-                if ord(c) == 0xAA:
+                if c == 0xAA:
                     if in_packet:
                         """ Start byte in the middle of a packet, start fresh """
                         in_escape = False
@@ -46,7 +52,7 @@ class RxThread(threading.Thread):
 
                     in_packet = True
 
-                elif ord(c) == 0xCC and in_packet:
+                elif c == 0xCC and in_packet:
                     in_packet = False
 
                     size = len(outbuf)
@@ -64,7 +70,7 @@ class RxThread(threading.Thread):
                             try:
                                 if self.logging and self.queue_log is not None:
                                     self.queue_log.put(outbuf[5:], False)
-                            except Queue.Full:
+                            except queue.Full:
                                 pass
                         else:
                             self.queue_in.put(outbuf)
@@ -74,18 +80,18 @@ class RxThread(threading.Thread):
                 else:
                     if in_packet and not in_escape:
                         """ Escape next byte """
-                        if ord(c) == 0xBB:
+                        if c == 0xBB:
                             in_escape = True
                         else:
-                            outbuf += c
+                            outbuf.append(c)
 
                     elif in_packet and in_escape:
-                        if ord(c) == 0x55:
-                            outbuf += chr(0xAA)
-                        elif ord(c) == 0x44:
-                            outbuf += chr(0xBB)
-                        elif ord(c) == 0x33:
-                            outbuf += chr(0xCC)
+                        if c == 0x55:
+                            outbuf.append(0xAA)
+                        elif c == 0x44:
+                            outbuf.append(0xBB)
+                        elif c == 0x33:
+                            outbuf.append(0xCC)
 
                         in_escape = False
 

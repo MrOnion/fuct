@@ -8,10 +8,13 @@ __author__ = 'ari'
 
 import binascii
 import struct
-import Queue
-import log
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+from . import log
 from collections import namedtuple
-from protocol import Protocol
+from .protocol import Protocol
 
 LOG = log.fuct_logger('fuctlog')
 
@@ -66,11 +69,11 @@ class Interrogator(object):
                     elif data[0] == Protocol.FE_CMD_LOCATION_ID_LIST + 1:
                         ids = len(data[1]) / 2
                         LOG.debug("Received %d location IDs" % ids)
-                        location_ids = struct.unpack_from(">%dH" % ids, buffer(data[1]))
+                        location_ids = struct.unpack_from(">%dH" % ids, data[1])
 
                     # TODO: error message handling
 
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
         return meta, location_ids
@@ -88,7 +91,7 @@ class Interrogator(object):
             LOG.debug("<-- %s" % binascii.hexlify(resp))
             data = Protocol.decode_packet(resp)
             if data[0] == Protocol.FE_CMD_LOCATION_ID_INFO + 1:
-                return locinfo(*struct.unpack_from(">HHBBHHH", buffer(data[1])))
+                return locinfo(*struct.unpack_from(">HHBBHHH", data[1]))
         else:
             LOG.warn("Failed to load location...")
 

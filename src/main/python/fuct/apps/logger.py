@@ -13,7 +13,10 @@ import serial
 import time
 import math
 import os
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import json
 import binascii
 import bz2
@@ -27,8 +30,8 @@ QUEUE_SIZE_LOG = 50
 
 def compress_file(filename):
     comp = bz2.BZ2Compressor()
-    src = file(filename, "r")
-    dst = file(filename + ".bz2", "w")
+    src = open(filename, "rb")
+    dst = open(filename + ".bz2", "wb")
     block = src.read(2048)
     while block:
         cblock = comp.compress(block)
@@ -90,7 +93,7 @@ def execute():
     args = parser.parse_args()
 
     if args.version:
-        print "fuctlogger %s (Git: %s)" % (__version__, __git__)
+        print("fuctlogger %s (Git: %s)" % (__version__, __git__))
     elif args.serial is not None:
         LOG.info("FUCT - fuctlogger %s (Git: %s)" % (__version__, __git__))
         ser = logfile = None
@@ -102,19 +105,19 @@ def execute():
             ser = serial.Serial(args.serial, 115200, bytesize=8, parity=serial.PARITY_ODD, stopbits=1)
             LOG.debug(ser)
 
-            file_identifier = binascii.hexlify(os.urandom(3))
+            file_identifier = binascii.hexlify(os.urandom(3)).decode('ascii')
             timestamp = time.strftime("%Y%m%d-%H%M%S")
 
             basename = logname = create_filename(args.prefix, args.path, tstamp=timestamp, identifier=file_identifier)
             LOG.info("Opening logfile: %s" % logname)
-            logfile = open(logname, 'w+')
+            logfile = open(logname, 'wb+')
 
             metaname = create_filename("meta", args.path, ext="json", tstamp=timestamp, identifier=file_identifier)
             LOG.info("Opening metafile: %s" % metaname)
             metafile = open(metaname, 'w+')
 
-            queue_in = Queue.Queue(0)
-            queue_out = Queue.Queue(0)
+            queue_in = queue.Queue(0)
+            queue_out = queue.Queue(0)
 
             executor = futures.ThreadPoolExecutor(max_workers=1)
 
@@ -174,7 +177,7 @@ def execute():
                     logcounter += 1
 
                 logfile.write(buf)
-                sys.stdout.write(spinner.next())
+                sys.stdout.write(next(spinner))
                 sys.stdout.flush()
                 sys.stdout.write('\b')
         except KeyboardInterrupt:
@@ -184,15 +187,7 @@ def execute():
             LOG.info("Compressing logfile")
             compress_file(logfile.name)
             exit(0)
-        except NotImplementedError, ex:
-            LOG.error(ex.message)
-        except (AttributeError, ValueError), ex:
-            LOG.error(ex.message)
-        except SerialException, ex:
-            LOG.error("Serial: " + ex.message)
-        except IOError, ex:
-            LOG.error("IO: " + ex.message)
-        except OSError, ex:
-            LOG.error("OS: " + ex.message)
+        except (NotImplementedError, AttributeError, ValueError, SerialException, IOError, OSError) as ex:
+            LOG.error(ex)
     else:
         parser.print_usage()
