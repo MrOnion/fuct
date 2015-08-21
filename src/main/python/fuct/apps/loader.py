@@ -57,7 +57,7 @@ class CmdHandler:
                     LOG.info("Parsed %d records" % len(records))
                     if records[0].stype[0] == 'S0':
                         header = records[0].data if CmdHandler.is_ascii(records[0].data) else "[binary data]"
-                        LOG.info("Header info: [%s]" % header)
+                        LOG.info("Header info: [%s]" % header.decode('ascii'))
                     else:
                         LOG.warning("No header...")
                     LOG.info("File OK")
@@ -105,8 +105,9 @@ class CmdHandler:
                 LOG.debug("%6d bytes to 0x%02x @ 0x%04x" % (page_size, page.page, page.address))
                 dev.erase_and_write(page, erase=False if page.page == last_page else True, verify=verify)
                 last_page = page.page
-                loaded_size += page_size
-                common.print_progress(float(loaded_size) / pagedata[1])
+                if LOG.getEffectiveLevel() is not logging.DEBUG:
+                    loaded_size += page_size
+                    common.print_progress(float(loaded_size) / pagedata[1])
 
             sys.stdout.write("\r")
             sys.stdout.flush()

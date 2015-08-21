@@ -19,7 +19,7 @@ from . import common
 LOG = logging.getLogger('fuctlog')
 
 
-class SMResponse():
+class SMResponse:
     def __init__(self, response, status, data=None):
         self.response_code = response
         self.status_code = status
@@ -32,7 +32,7 @@ class SMResponse():
                 len(self.data))
 
 
-class SMDevice():
+class SMDevice:
     # Motorola/Freescale serial monitor command characters
     # application note AN2548
 
@@ -183,7 +183,7 @@ class SMDevice():
             self.__set_page(mempage.page)
             self.__erase_page()
 
-        blocks = len(mempage.data) / self.BLOCK_SIZE
+        blocks = int(len(mempage.data) / self.BLOCK_SIZE)
         trailing = len(mempage.data) % self.BLOCK_SIZE
         start_block = 0
         start_addr = mempage.address
@@ -214,24 +214,25 @@ class SMDevice():
         # Add S0 header record
         f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify("S19 ripped by fuct")).print_srec() + '\r\n')
 
-        for i, page in enumerate(xrange(start, last)):
+        for i, page in enumerate(range(start, last)):
             addr = 0x8000
             rec_len = 16
-            progress = float(i) / pages
-            common.print_progress(progress)
+            if LOG.getEffectiveLevel() is not logging.DEBUG:
+                progress = float(i) / pages
+                common.print_progress(progress)
             self.__set_page(page)
             page_data = binascii.hexlify(self.__read_page()).upper()
 
             # Trim empty flash from start and end of pages
             first_index = len(page_data)
-            for index in xrange(0, len(page_data), 2):
+            for index in range(0, len(page_data), 2):
                 if page_data[index:index + 2] != 'FF':
                     first_index = index
                     break
             first_index = (first_index // rec_len) * rec_len
 
             last_index = 0
-            for index in xrange(len(page_data), 0, -2):
+            for index in range(len(page_data), 0, -2):
                 if page_data[index - 2:index] != 'FF':
                     last_index = index
                     break
@@ -263,14 +264,14 @@ class SMDevice():
         total = end - start
         last = end + 1
         counter = 0
-        for page in xrange(start, last):
+        for page in range(start, last):
             self.__set_page(page)
             self.__erase_page()
-            if LOG.getEffectiveLevel() == logging.INFO:
+            if LOG.getEffectiveLevel() is not logging.DEBUG:
                 progress = float(counter) / total
                 common.print_progress(progress)
             counter += 1
-        if LOG.getEffectiveLevel() == logging.INFO:
+        if LOG.getEffectiveLevel() is not logging.DEBUG:
             sys.stdout.write("\r")
             sys.stdout.flush()
 

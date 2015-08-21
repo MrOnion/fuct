@@ -6,6 +6,7 @@
 
 __author__ = 'ari'
 
+import sys
 import logging
 from .srecord import SRecord, STYPES
 
@@ -35,7 +36,6 @@ def verify_firmware(filepath):
         except TypeError as ex:
             LOG.error("Line %d: %s" % (ln + 1, ex.message))
             return None
-
     return records
 
 
@@ -58,7 +58,8 @@ def parse_line(line):
 
 def parse_record(line):
     stype = STYPES.get(line[:2])
-    adata = bytearray(line[2:].decode("hex"))
+    # python 2 vs 3
+    adata = bytearray(line[2:].decode('hex')) if sys.version_info[0] < 3 else bytes.fromhex(line[2:])
     bytecount = ord(adata[:1])
     address = adata[1:stype[1]+1]  # FIXME: Add support for S5 2,3,4 byte address space
     data = adata[stype[1]+1:-1]
