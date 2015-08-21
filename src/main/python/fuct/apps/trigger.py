@@ -9,12 +9,15 @@ __author__ = 'ari'
 import logging
 import argparse
 import serial
-import Queue
 import time
 import struct
 import re
 import binascii
 import sys
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 from serial.serialutil import SerialException
 from fuct import log, rx, protocol, __version__, __git__
 
@@ -27,7 +30,7 @@ QUEUE_SIZE_LOG = 50
 def get_timing_values(rows):
     values = []
     for row in rows:
-        values.append(struct.unpack('>H', buffer(row[54:56])))
+        values.append(struct.unpack('>H', row[54:56]))
     return to_angle(min(values)[0]), to_angle(max(values)[0])
 
 
@@ -82,7 +85,7 @@ def execute():
     args = parser.parse_args()
 
     if args.version:
-        print "fucttrigger %s (Git: %s)" % (__version__, __git__)
+        print("fucttrigger %s (Git: %s)" % (__version__, __git__))
     elif args.serial is not None:
         LOG.info("FUCT - fucttrigger %s (Git: %s)" % (__version__, __git__))
         rxThread = None
@@ -94,9 +97,9 @@ def execute():
             ser = serial.Serial(args.serial, 115200, bytesize=8, parity=serial.PARITY_ODD, stopbits=1)
             LOG.debug(ser)
 
-            queue_in = Queue.Queue(0)
-            queue_out = Queue.Queue(0)
-            queue_log = Queue.Queue(QUEUE_SIZE_LOG)
+            queue_in = queue.Queue(0)
+            queue_out = queue.Queue(0)
+            queue_log = queue.Queue(QUEUE_SIZE_LOG)
 
             ser.timeout = 0.02
             rxThread = rx.RxThread(ser, queue_in, queue_log)
@@ -116,7 +119,7 @@ def execute():
                     LOG.debug("--> %s" % binascii.hexlify(packet[1:-2]))
                     ser.write(packet)
                     ser.flush()
-                except Queue.Empty:
+                except queue.Empty:
                     pass
 
                 try:
@@ -129,7 +132,7 @@ def execute():
                             LOG.info("Decoder: %s" % data[1])
                             queue_out.put(read_trigger_message(flash=True))
                         if data[0] == protocol.Protocol.FE_CMD_FLASH_READ + 1:
-                            offset_value = struct.unpack('>H', buffer(data[1]))[0]
+                            offset_value = struct.unpack('>H', data[1])[0]
                             LOG.info("Current trigger offset in flash: %.2f deg" % to_angle(offset_value))
                             if args.offset is not None:
                                 offset_value = to_raw_angle(args.offset)
@@ -144,7 +147,7 @@ def execute():
                             LOG.info("Trigger offset set to: %.2f deg" % to_angle(offset_value))
                             updating = False
 
-                except Queue.Empty:
+                except queue.Empty:
                     pass
 
                 if not init and not updating:
@@ -155,7 +158,7 @@ def execute():
                     if ign[0] != ign[1]:
                         LOG.warning("Ignition advance is not steady, travels between %.2f <-> %.2f deg" % ign)
 
-                    line = raw_input('>>> ')
+                    line = raw_input('>>> ') if sys.version_info[0] < 3 else input('>>> ')
                     offset_new = offset_value
                     if line == 'a':
                         offset_new += ANGLE_FACTOR
@@ -185,19 +188,13 @@ def execute():
                     if offset_new != offset_value:
                         offset_value = offset_new
                         LOG.debug("Raw offset value: %d" % offset_new)
-                        queue_out.put(write_trigger_message(struct.pack('>H', offset_value), flash=True))
+                        queue_out.put(write_trigger_message(struct.pack('>H', int(offset_value)), flash=True))
                         updating = True
 
         except KeyboardInterrupt:
             rxThread.stop()
             LOG.info("Exiting...")
-        except NotImplementedError, ex:
-            LOG.error(ex.message)
-        except (AttributeError, ValueError), ex:
-            LOG.error(ex.message)
-        except SerialException, ex:
-            LOG.error("Serial: " + ex.message)
-        except OSError, ex:
-            LOG.error("OS: " + ex.message)
+        except (NotImplementedError, AttributeError, ValueError, SerialException, OSError) as ex:
+            LOG.error(ex)
     else:
         parser.print_usage()
