@@ -1,3 +1,4 @@
+import sys
 import subprocess
 from pybuilder.core import Author, init, use_plugin, task, before, after
 
@@ -26,9 +27,9 @@ def set_properties(project, logger):
     project.depends_on("colorlog[windows]", ">=2.0")
     logger.info("Executing git describe")
     project.version = subprocess.check_output(
-        ["git", "describe", "--abbrev=0"]).decode('utf-8').rstrip("\n")
+        ["git", "describe", "--abbrev=0"]).decode('utf8').rstrip("\n")
     project.set_property("gitdesc", subprocess.check_output(
-        ["git", "describe", "--tags", "--always", "--long", "--dirty"]).decode('utf-8').rstrip("\n"))
+        ["git", "describe", "--tags", "--always", "--long", "--dirty"]).decode('utf8').rstrip("\n"))
     project.set_property("dir_dist", "$dir_target/dist/%s-%s" % (project.name, project.version))
     project.set_property('distutils_commands', 'build')
     project.set_property('distutils_command_options', {'build': ('-e', '/usr/bin/env python', 'bdist_wheel')})
