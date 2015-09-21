@@ -38,7 +38,14 @@ fucttrigger
 Build
 -----
 
-This project uses `PyBuilder <http://pybuilder.github.io/>` as a build tool. Just type:
+Get the required tools, on Debian like distros, you can run this:
+
+.. code-block:: bash
+
+    $ sudo apt-get install python-pip
+    $ sudo pip install --upgrade pybuilder colorlog pyserial futures
+
+This project uses `PyBuilder <http://pybuilder.github.io/>` as a build tool. Once you have it installed, just type:
 
 .. code-block:: bash
 
