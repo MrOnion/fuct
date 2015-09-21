@@ -126,3 +126,4 @@ To log binary data into a prefixed file with 50 Mb size limit:
 License
 -------
 Copyright (c) 2014 Ari Karhu. See the LICENSE file for license rights and limitations (MIT).
+
