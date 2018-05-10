@@ -123,7 +123,7 @@ class CmdHandler:
 
     @staticmethod
     def do_rip(params):
-        filename = "rip-%s.bin" % time.strftime("%Y%m%d-%H%M%S")
+        filename = "rip-%s.s19" % time.strftime("%Y%m%d-%H%M%S")
         if params[0] is not None:
             dev = CmdHandler.get_device(params[0])
             LOG.info("Ripping pages from 0xE0 to 0xFF")

@@ -14,6 +14,7 @@ import common
 from time import sleep
 from struct import pack, unpack_from
 from serial import SerialTimeoutException
+from srecord import SRecord, STYPES
 
 LOG = logging.getLogger('fuctlog')
 
@@ -209,13 +210,33 @@ class SMDevice():
         last = end + 1
         pages = last - start
 
-        # TODO: saving raw data is good enough?
         f = open(filepath, 'a+')
+
+        # Add S0 header record
+        f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify("S19 ripped by fuct")).print_srec() + '\r\n')
+
         for i, page in enumerate(xrange(start, last)):
+            addr = 0x8000
+            rec_len = 16
             progress = float(i) / pages
             common.print_progress(progress)
             self.__set_page(page)
-            f.write(self.__read_page())
+            page_data = binascii.hexlify(self.__read_page()).upper()
+
+            # Split data into lines of readable length and stringify
+            records = ''
+            while len(page_data):
+                rec_data = page_data[:rec_len * 2]
+                records += SRecord(STYPES['S2'], bytearray([page, (addr >> 8) & 0xFF, addr & 0xFF]), rec_data).print_srec() + '\r\n'
+                addr += len(rec_data) // 2
+                page_data = page_data[rec_len * 2:]
+
+            if len(records):
+                f.write(records)
+
+        # Add execution start address record
+        f.write(SRecord(STYPES['S8'], bytearray([0x00, 0xC0, 0x00])).print_srec() + '\r\n')
+
         f.close()
 
         sys.stdout.write("\r")
