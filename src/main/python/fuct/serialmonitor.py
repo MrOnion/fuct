@@ -224,18 +224,18 @@ class SMDevice():
             page_data = binascii.hexlify(self.__read_page()).upper()
 
             # Trim empty flash from start and end of pages
-            first_index = 0
-            for char in page_data:
-                if char != 'F':
+            first_index = len(page_data)
+            for index in xrange(0, len(page_data), 2):
+                if page_data[index:index + 2] != 'FF':
+                    first_index = index
                     break
-                first_index += 1
             first_index = (first_index // rec_len) * rec_len
 
-            last_index = len(page_data)
-            for char in page_data[::-1]:
-                if char != 'F':
+            last_index = 0
+            for index in xrange(len(page_data), 0, -2):
+                if page_data[index - 2:index] != 'FF':
+                    last_index = index
                     break
-                last_index -= 1
 
             page_data = page_data[first_index:last_index]
             addr += first_index // 2
