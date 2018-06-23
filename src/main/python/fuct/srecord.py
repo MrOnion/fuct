@@ -70,7 +70,7 @@ class SRecord(object):
                 checksum += int(address_byte)
 
             # Checksum the data if present for this record type
-            if self.stype[2]:
+            if self.stype[2] and self.data is not None:
                 rec_data = self.data
                 while len(rec_data):
                     checksum += int(rec_data[:2], 16)
@@ -83,10 +83,10 @@ class SRecord(object):
 
         srec_string = self.stype[0]
         srec_string += hex(srec_length()).upper()[2:].zfill(2)
-        srec_string += str(binascii.hexlify(self.address)).upper()
+        srec_string += binascii.hexlify(self.address).upper().decode('ascii')
 
         if self.stype[2] and self.data is not None:
-            srec_string += str(self.data)
+            srec_string += self.data.decode('ascii')
 
         srec_string += hex(srec_checksum())[2:].zfill(2).upper()
 

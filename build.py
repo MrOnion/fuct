@@ -1,4 +1,3 @@
-import sys
 import subprocess
 from pybuilder.core import Author, init, use_plugin, task, before, after
 

@@ -13,7 +13,7 @@ import hashlib
 from time import sleep
 from struct import pack, unpack_from
 from serial import SerialTimeoutException
-from srecord import SRecord, STYPES
+from .srecord import SRecord, STYPES
 from . import common
 
 LOG = logging.getLogger('fuctlog')
@@ -123,13 +123,13 @@ class SMDevice:
                         LOG.info("Device looks FreeEMS compatible :)")
                         return True
                     elif 1 >= device[1] >= 0 == device[2]:
-                        LOG.warn("Device looks FreeEMS compatible, but with wrong maskset :/")
+                        LOG.warning("Device looks FreeEMS compatible, but with wrong maskset :/")
                     elif device[1] == 0x0C and (device[2] == 8 or device[2] == 9) and 0 <= device[3] <= 2:
-                        LOG.warn("Device looks XEP100 (Megasquirt-III?)")
+                        LOG.warning("Device looks XEP100 (Megasquirt-III?)")
                     else:
-                        LOG.warn("Device is not FreeEMS compatible :(")
+                        LOG.warning("Device is not FreeEMS compatible :(")
                 elif device[0] == 0x03:
-                    LOG.warn("Device is S12C family (Megasquirt-II/Microsquirt?)")
+                    LOG.warning("Device is S12C family (Megasquirt-II/Microsquirt?)")
                 else:
                     LOG.error("Device is unknown family")
                 return False
@@ -212,7 +212,7 @@ class SMDevice:
         f = open(filepath, 'a+')
 
         # Add S0 header record
-        f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify("S19 ripped by fuct")).print_srec() + '\r\n')
+        f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify(b"S19 ripped by fuct")).print_srec() + '\r\n')
 
         for i, page in enumerate(range(start, last)):
             addr = 0x8000
