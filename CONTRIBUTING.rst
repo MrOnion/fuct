@@ -47,4 +47,4 @@ Pull Request Guidelines
 
 Well, not many as the project is quite small. Also, it does not have any tests at the moment :(. Tests are welcome though and highly appreciated.
 
-It should run with at least python 2.6/2.7.
+It should run with at least python 2.7.

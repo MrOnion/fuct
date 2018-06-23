@@ -10,4 +10,5 @@ Development Lead
 Contributors
 ------------
 
-None yet.
+* Fred Cooke (fredcooke)
+* Rob Rawnsley (RobR35)
