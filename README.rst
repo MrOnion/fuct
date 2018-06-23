@@ -61,14 +61,14 @@ Build first. Use the distutils setup.py installation script in the generated dis
 .. code-block:: bash
 
     $ cd target/dist/fuct-<version>
-    $ python setup.py install
+    $ python setup.py clean install
 
 Dependencies
 ------------
 
-* pyserial >=2.7
-* futures >= 3.0.3
-* colorlog >=2.0.0
+* pyserial
+* futures (python 2.7 only)
+* colorlog
 
 Examples
 ---------------
