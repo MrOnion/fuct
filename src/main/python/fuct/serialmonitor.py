@@ -19,7 +19,7 @@ from . import common
 LOG = logging.getLogger('fuctlog')
 
 
-class SMResponse():
+class SMResponse:
     def __init__(self, response, status, data=None):
         self.response_code = response
         self.status_code = status
@@ -32,7 +32,7 @@ class SMResponse():
                 len(self.data))
 
 
-class SMDevice():
+class SMDevice:
     # Motorola/Freescale serial monitor command characters
     # application note AN2548
 
@@ -123,13 +123,13 @@ class SMDevice():
                         LOG.info("Device looks FreeEMS compatible :)")
                         return True
                     elif 1 >= device[1] >= 0 == device[2]:
-                        LOG.warn("Device looks FreeEMS compatible, but with wrong maskset :/")
+                        LOG.warning("Device looks FreeEMS compatible, but with wrong maskset :/")
                     elif device[1] == 0x0C and (device[2] == 8 or device[2] == 9) and 0 <= device[3] <= 2:
-                        LOG.warn("Device looks XEP100 (Megasquirt-III?)")
+                        LOG.warning("Device looks XEP100 (Megasquirt-III?)")
                     else:
-                        LOG.warn("Device is not FreeEMS compatible :(")
+                        LOG.warning("Device is not FreeEMS compatible :(")
                 elif device[0] == 0x03:
-                    LOG.warn("Device is S12C family (Megasquirt-II/Microsquirt?)")
+                    LOG.warning("Device is S12C family (Megasquirt-II/Microsquirt?)")
                 else:
                     LOG.error("Device is unknown family")
                 return False
@@ -212,9 +212,9 @@ class SMDevice():
         f = open(filepath, 'a+')
 
         # Add S0 header record
-        f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify("S19 ripped by fuct")).print_srec() + '\r\n')
+        f.write(SRecord(STYPES['S0'], bytearray([0x00, 0x00]), binascii.hexlify(b"S19 ripped by fuct")).print_srec() + '\r\n')
 
-        for i, page in enumerate(xrange(start, last)):
+        for i, page in enumerate(range(start, last)):
             addr = 0x8000
             rec_len = 16
             if LOG.getEffectiveLevel() is not logging.DEBUG:
@@ -225,14 +225,14 @@ class SMDevice():
 
             # Trim empty flash from start and end of pages
             first_index = len(page_data)
-            for index in xrange(0, len(page_data), 2):
+            for index in range(0, len(page_data), 2):
                 if page_data[index:index + 2] != 'FF':
                     first_index = index
                     break
             first_index = (first_index // rec_len) * rec_len
 
             last_index = 0
-            for index in xrange(len(page_data), 0, -2):
+            for index in range(len(page_data), 0, -2):
                 if page_data[index - 2:index] != 'FF':
                     last_index = index
                     break

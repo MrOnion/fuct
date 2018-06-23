@@ -194,6 +194,6 @@ def execute():
             else:
                 LOG.error("Exiting on error")
         except (NotImplementedError, AttributeError, ValueError, SerialException, OSError) as ex:
-            LOG.error(ex.args)
+            LOG.error(str(ex))
     else:
         parser.print_usage()
